@@ -1,0 +1,42 @@
+#include <iostream>
+#include <ctime>
+using namespace std;
+
+void deal();
+void compare();
+
+
+int main(){
+    
+    srand(time(0));
+    cout << "The player draws: ";
+    deal();
+    cout << endl << "The computer draws: ";
+    deal();
+    compare();
+    return 0;
+
+}
+
+void deal(){
+
+    
+    int valueId;
+    int suitId;
+    string cardValue [13] = {"Ace","Deuces","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Jack","Queen","King"};
+    string cardSuit [4] = {"Clubs","Diamonds","Hearts","Spades"};
+    
+    /*Av någon anledning så ville rand() inte slumpa det högsta talet när den fick % x + 0, fick lösa det på sättet nedanför*/
+    valueId = -1 + rand() % 13 + 1;
+    suitId = -1 + rand() % 4 + 1;
+
+    cout << cardValue[valueId] << " of " << cardSuit[suitId] << endl;
+    system("pause");
+
+}
+
+void compare(){
+
+    cout << "compare";
+
+}
