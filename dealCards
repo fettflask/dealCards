@@ -1,42 +1,573 @@
 #include <iostream>
 #include <ctime>
+#include <string>
+#include <Windows.h>
 using namespace std;
 
-void deal();
-void compare();
+
+int play();
+int compare(int, int, int, int);
+void score(int, int);
+void cardGraphics(int, int);
 
 
 int main(){
     
-    srand(time(0));
-    cout << "The player draws: ";
-    deal();
-    cout << endl << "The computer draws: ";
-    deal();
-    compare();
-    return 0;
+    int playerScore = 0, computerScore = 0;
+    int winnerId, menuId, cinOK;
+    bool playing = true;
+    srand(time(NULL));
 
+    cout << "Welcome to higher card wins!" << endl;
+    cout << "The rules are simple:" << endl;
+    cout << "You each draw a card from the same deck and whoever draws the higher card wins." << endl;
+    cout << "One match contains three rounds and the deck is shuffled between each round." << endl;
+
+    while (playing){
+        cout << endl << "Type what you want to do:" << endl << "1. Play a match" << endl <<"2. View score" << endl << "3. Quit game" << endl;
+        cin >> menuId;
+        cinOK = cin.fail();
+        while(cinOK){  /*Begränsar vad som kan skrivas in i integern*/
+            cin.clear();
+            cin.ignore(1000,'\n');
+            cout << "Only numbers please" << endl;
+            cin >> menuId;
+            cinOK = cin.fail();
+        }
+        /*Ingen check behövs för att avgöra om det inmatade värdet går in i switchen, 
+        loopen loopar igen om fel värde matas in*/
+        switch (menuId){
+            case 1:
+                winnerId = play();
+                if(winnerId == 1){
+                    playerScore++;
+                }
+                else{
+                    computerScore++;
+                }
+                score(playerScore, computerScore);
+                break;
+            case 2:
+                score(playerScore, computerScore);
+                break;
+            case 3:
+                playing = false;
+                break;
+        }
+    }
+    return 0;
 }
 
-void deal(){
+//Funktion som sköter speltet
+int play(){
 
-    
-    int valueId;
-    int suitId;
+    int playerWins = 0, computerWins = 0;  
+    int winnerId;
+    int round = 1;
+    /*Kortlek nedbruten i två arrayer, låga kortvärden i början och höga i sluten*/ 
     string cardValue [13] = {"Ace","Deuces","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Jack","Queen","King"};
     string cardSuit [4] = {"Clubs","Diamonds","Hearts","Spades"};
     
-    /*Av någon anledning så ville rand() inte slumpa det högsta talet när den fick % x + 0, fick lösa det på sättet nedanför*/
-    valueId = -1 + rand() % 13 + 1;
-    suitId = -1 + rand() % 4 + 1;
+    while(playerWins <2 && computerWins <2){ /*Spelar bara om ingen har två vinster*/ 
+        int playerValue = 0, playerSuit = 0, computerValue = 0, computerSuit = 0; /*initierar kortvärden och nollställer dem varje omgång*/ 
+        /*"Blandningen" av kort, spelaren och datorn får slumpade tal som motsvara platser i respektive array*/
+        while (playerValue == computerValue && playerSuit == computerSuit){ /*Gör att spelaren och datorn inte kan få samma kort*/
+            playerValue = rand() % 13;
+            playerSuit = rand() % 4;
+            computerValue = rand() % 13;
+            computerSuit = rand() % 4;
+        }
 
-    cout << cardValue[valueId] << " of " << cardSuit[suitId] << endl;
-    system("pause");
+        cout << endl << "The deck has been shuffled!" << endl;
+        cout << "Round " << round << endl << "=======" << endl;
+        round++;
+        Sleep(1000);
+        /*Använder de slumpade värden för att hämta och skriva ut värden från respektive array*/
+        cout << endl << "Player 1 draws: "<< cardValue[playerValue] << " of " << cardSuit[playerSuit] << endl;
+        /*Matar in de slumpade värden i funktionen*/
+        cardGraphics(playerValue, playerSuit);
+        Sleep(1000);
+        cout << endl << "Player 2 draws: "<< cardValue[computerValue] << " of " << cardSuit[computerSuit] << endl;
+        cardGraphics(computerValue, computerSuit);
 
+        winnerId = compare(playerValue, playerSuit, computerValue, computerSuit);
+        if(winnerId == 1){
+            playerWins++;
+        }
+        else if(winnerId == 2){
+            computerWins++;
+        }
+    }
+    if(playerWins > computerWins){
+        cout << "Player 1 won the match!" << endl;
+        return 1;
+    }
+    else{
+        cout << "Player 2 won the match!" << endl;
+        return 2;
+    }
 }
 
-void compare(){
+//Funktion som avgör vem som vann den senaste omgången
+int compare(int pv, int ps, int cv, int cs){
 
-    cout << "compare";
-
+    if(pv == cv) { /*Chekar först om korten har samma valör och då avgörs vinnaren av bäst färg*/
+        cout << endl << "You both drawed the same rank of card!" << endl;
+        if(ps > cs){
+            cout << "Player 1's suit is worth more, they win this round!" << endl;
+            system("pause");
+            return 1;
+        } 
+        else {
+            cout << "Player 2's suit is worth more, they win this round!" << endl;
+            system("pause");
+            return 2;
+        }
+    }
+    else if(pv > cv) {
+        cout << endl <<"Player 1 drawed the bigger card, they win this round!" << endl;
+        system("pause");
+        return 1;
+    }
+    else {
+        cout << endl <<"Player 2 drawed the bigger card, they win this round!" << endl;
+        system("pause");
+        return 2;
+    }
 }
+
+//Funktion som visar matchpoäng
+void score(int player, int computer){
+    cout << endl << "The current score is: " << player << " - " << computer << endl;
+    cout << "Player 1 have " << player << " point(s)" << endl;
+    cout << "Player 2 have " << computer << " point(s)" << endl; 
+}
+
+//Funktion för ASCII kort
+void cardGraphics(int cardValue, int cardSuit){
+
+    /*Sammanfogar inmatade värden till en unik valör i en string och konverterar tillbaka dem till en interger*/
+    string concatenate = to_string(cardValue) + to_string(cardSuit);
+    int cardCode = stoi(concatenate);
+
+    /*Switch med alla unika kort i ASCII grafik*/
+    switch (cardCode) {
+        case 00:
+        cout << " _____ \n"
+                "|A _  |\n"
+                "| ( ) |\n"
+                "|(_'_)|\n"
+                "|  |  |\n"
+                "|____V|\n";
+        break;
+        case 10:
+        cout << " _____ \n"
+                "|2    |\n"
+                "|  &  |\n"
+                "|     |\n"
+                "|  &  |\n"
+                "|____Z|\n";
+        break;
+        case 20:                
+        cout << " _____ \n"
+                "|3    |\n"
+                "| & & |\n"
+                "|     |\n"
+                "|  &  |\n"
+                "|____E|\n";
+        break;
+        case 30:   
+        cout << " _____ \n"
+                "|4    |\n"
+                "| & & |\n"
+                "|     |\n"
+                "| & & |\n"
+                "|____h|\n";
+        break;
+        case 40:
+        cout << " _____ \n"
+                "|5    |\n"
+                "| & & |\n"
+                "|  &  |\n"
+                "| & & |\n"
+                "|____S|\n";
+        break;
+        case 50:
+        cout << " _____ \n"
+                "|6    |\n"
+                "| & & |\n"
+                "| & & |\n"
+                "| & & |\n"
+                "|____9|\n";
+        break;
+        case 60:
+        cout << " _____ \n"
+                "|7    |\n"
+                "| & & |\n"
+                "|& & &|\n"
+                "| & & |\n"
+                "|____L|\n";
+        break;
+        case 70:
+        cout << " _____ \n"
+                "|8    |\n"
+                "|& & &|\n"
+                "| & & |\n"
+                "|& & &|\n"
+                "|____8|\n";
+        break;
+        case 80:
+        cout << " _____ \n"
+                "|9    |\n"
+                "|& & &|\n"
+                "|& & &|\n"
+                "|& & &|\n"
+                "|____6|\n";
+        break;
+        case 90:
+        cout << " _____ \n"
+                "|10 & |\n"
+                "|& & &|\n"
+                "|& & &|\n"
+                "|& & &|\n"
+                "|___0I|\n";
+        break;
+        case 100:
+        cout << " _____ \n"               
+                "|J  ww|\n"
+                "| o {)|\n"
+                "|o o% |\n"
+                "| | % |\n"
+                "|__%%[|\n";
+        break;
+        case 110:
+        cout << " _____ \n"            
+                "|Q  ww|\n"              
+                "| o {(|\n"
+                "|o o%%|\n"
+                "| |%%%|\n"
+                "|_%%%O|\n";
+        break;
+        case 120:
+        cout << " _____ \n"
+                "|K  WW|\n"
+                "| o {)|\n"
+                "|o o%%|\n"
+                "| |%%%|\n"
+                "|_%%%>|\n";
+        break;
+        case 01:
+        cout << " _____ \n"
+                "|A ^  |\n"
+                "| / \\ |\n"
+                "| \\ / |\n"
+                "|  v  |\n"
+                "|____V|\n";
+        break;
+        case 11:
+        cout << " _____ \n"
+                "|2    |\n"
+                "|  o  |\n"
+                "|     |\n"
+                "|  o  |\n"
+                "|____Z|\n";
+        break;
+        case 21:                
+        cout << " _____ \n"
+                "|3    |\n"
+                "| o o |\n"
+                "|     |\n"
+                "|  o  |\n"
+                "|____E|\n";
+        break;
+        case 31:   
+        cout << " _____ \n"
+                "|4    |\n"
+                "| o o |\n"
+                "|     |\n"
+                "| o o |\n"
+                "|____h|\n";
+        break;
+        case 41:
+        cout << " _____ \n"
+                "|5    |\n"
+                "| o o |\n"
+                "|  o  |\n"
+                "| o o |\n"
+                "|____S|\n";
+        break;
+        case 51:
+        cout << " _____ \n"
+                "|6    |\n"
+                "| o o |\n"
+                "| o o |\n"
+                "| o o |\n"
+                "|____9|\n";
+        break;
+        case 61:
+        cout << " _____ \n"
+                "|7    |\n"
+                "| o o |\n"
+                "|o o o|\n"
+                "| o o |\n"
+                "|____L|\n";
+        break;
+        case 71:
+        cout << " _____ \n"
+                "|8    |\n"
+                "|o o o|\n"
+                "| o o |\n"
+                "|o o o|\n"
+                "|____8|\n";
+        break;
+        case 81:
+        cout << " _____ \n"
+                "|9    |\n"
+                "|o o o|\n"
+                "|o o o|\n"
+                "|o o o|\n"
+                "|____6|\n";
+        break;
+        case 91:
+        cout << " _____ \n"
+                "|10 o |\n"
+                "|o o o|\n"
+                "|o o o|\n"
+                "|o o o|\n"
+                "|___0I|\n";
+        break;
+        case 101:
+        cout << " _____ \n"               
+                "|J  ww|\n"
+                "| /\\{)|\n"
+                "| \\/% |\n"
+                "|   % |\n"
+                "|__%%[|\n";
+        break;
+        case 111:
+        cout << " _____ \n"            
+                "|Q  ww|\n"              
+                "| /\\{(|\n"
+                "| \\/%%|\n"
+                "|  %%%|\n"
+                "|_%%%O|\n";
+        break;
+        case 121:
+        cout << " _____ \n"
+                "|K  WW|\n"
+                "| /\\{)|\n"
+                "| \\/%%|\n"
+                "|  %%%|\n"
+                "|_%%%>|\n";
+        break;
+        case 02:
+        cout << " _____ \n"
+                "|A_ _ |\n"
+                "|( v )|\n"
+                "| \\ / |\n"
+                "|  v  |\n"
+                "|____V|\n";
+        break;
+        case 12:
+        cout << " _____ \n"
+                "|2    |\n"
+                "|  v  |\n"
+                "|     |\n"
+                "|  v  |\n"
+                "|____Z|\n";
+        break;
+        case 22:                
+        cout << " _____ \n"
+                "|3    |\n"
+                "| v v |\n"
+                "|     |\n"
+                "|  v  |\n"
+                "|____E|\n";
+        break;
+        case 32:   
+        cout << " _____ \n"
+                "|4    |\n"
+                "| v v |\n"
+                "|     |\n"
+                "| v v |\n"
+                "|____h|\n";
+        break;
+        case 42:
+        cout << " _____ \n"
+                "|5    |\n"
+                "| v v |\n"
+                "|  v  |\n"
+                "| v v |\n"
+                "|____S|\n";
+        break;
+        case 52:
+        cout << " _____ \n"
+                "|6    |\n"
+                "| v v |\n"
+                "| v v |\n"
+                "| v v |\n"
+                "|____9|\n";
+        break;
+        case 62:
+        cout << " _____ \n"
+                "|7    |\n"
+                "| v v |\n"
+                "|v v v|\n"
+                "| v v |\n"
+                "|____L|\n";
+        break;
+        case 72:
+        cout << " _____ \n"
+                "|8    |\n"
+                "|v v v|\n"
+                "| v v |\n"
+                "|v v v|\n"
+                "|____8|\n";
+        break;
+        case 82:
+        cout << " _____ \n"
+                "|9    |\n"
+                "|v v v|\n"
+                "|v v v|\n"
+                "|v v v|\n"
+                "|____6|\n";
+        break;
+        case 92:
+        cout << " _____ \n"
+                "|10 v |\n"
+                "|v v v|\n"
+                "|v v v|\n"
+                "|v v v|\n"
+                "|___0I|\n";
+        break;
+        case 102:
+        cout << " _____ \n"               
+                "|J  ww|\n"
+                "|(v){)|\n"
+                "| v % |\n"
+                "|   % |\n"
+                "|__%%[|\n";
+        break;
+        case 112:
+        cout << " _____ \n"            
+                "|Q  ww|\n"              
+                "|(v){(|\n"
+                "| v %%|\n"
+                "|  %%%|\n"
+                "|_%%%O|\n";
+        break;
+        case 122:
+        cout << " _____ \n"
+                "|K  WW|\n"
+                "|(v){)|\n"
+                "| v %%|\n"
+                "|  %%%|\n"
+                "|_%%%>|\n";
+        break;
+        case 03:
+        cout << " _____ \n"
+                "|A ^  |\n"
+                "| / \\ |\n"
+                "|(_ _)|\n"
+                "|  |  |\n"
+                "|____V|\n";
+        break;
+        case 13:
+        cout << " _____ \n"
+                "|2    |\n"
+                "|  ^  |\n"
+                "|     |\n"
+                "|  ^  |\n"
+                "|____Z|\n";
+        break;
+        case 23:                
+        cout << " _____ \n"
+                "|3    |\n"
+                "| ^ ^ |\n"
+                "|     |\n"
+                "|  ^  |\n"
+                "|____E|\n";
+        break;
+        case 33:   
+        cout << " _____ \n"
+                "|4    |\n"
+                "| ^ ^ |\n"
+                "|     |\n"
+                "| ^ ^ |\n"
+                "|____h|\n";
+        break;
+        case 43:
+        cout << " _____ \n"
+                "|5    |\n"
+                "| ^ ^ |\n"
+                "|  ^  |\n"
+                "| ^ ^ |\n"
+                "|____S|\n";
+        break;
+        case 53:
+        cout << " _____ \n"
+                "|6    |\n"
+                "| ^ ^ |\n"
+                "| ^ ^ |\n"
+                "| ^ ^ |\n"
+                "|____9|\n";
+        break;
+        case 63:
+        cout << " _____ \n"
+                "|7    |\n"
+                "| ^ ^ |\n"
+                "|^ ^ ^|\n"
+                "| ^ ^ |\n"
+                "|____L|\n";
+        break;
+        case 73:
+        cout << " _____ \n"
+                "|8    |\n"
+                "|^ ^ ^|\n"
+                "| ^ ^ |\n"
+                "|^ ^ ^|\n"
+                "|____8|\n";
+        break;
+        case 83:
+        cout << " _____ \n"
+                "|9    |\n"
+                "|^ ^ ^|\n"
+                "|^ ^ ^|\n"
+                "|^ ^ ^|\n"
+                "|____6|\n";
+        break;
+        case 93:
+        cout << " _____ \n"
+                "|10 ^ |\n"
+                "|^ ^ ^|\n"
+                "|^ ^ ^|\n"
+                "|^ ^ ^|\n"
+                "|___0I|\n";
+        break;
+        case 103:
+        cout << " _____ \n"               
+                "|J  ww|\n"
+                "| ^ {)|\n"
+                "|( )% |\n"
+                "| | % |\n"
+                "|__%%[|\n";
+        break;
+        case 113:
+        cout << " _____ \n"            
+                "|Q  ww|\n"              
+                "| ^ {(|\n"
+                "|( )%%|\n"
+                "| |%%%|\n"
+                "|_%%%O|\n";
+        break;
+        case 123:
+        cout << " _____ \n"
+                "|K  WW|\n"
+                "| ^ {)|\n"
+                "|( )%%|\n"
+                "| |%%%|\n"
+                "|_%%%>|\n";
+        break;
+    }
+}
+
