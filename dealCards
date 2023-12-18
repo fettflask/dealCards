@@ -150,7 +150,7 @@ void cardGraphics(int cardValue, int cardSuit){
     string concatenate = to_string(cardValue) + to_string(cardSuit);
     int cardCode = stoi(concatenate);
 
-    /*Switch med alla unika kort i ASCII grafik*/
+    /*Switch med alla unika kort i ASCII grafik. Tack till ejm98 för designen*/
     switch (cardCode) {
         case 00:
         cout << " _____ \n"
@@ -570,4 +570,3 @@ void cardGraphics(int cardValue, int cardSuit){
         break;
     }
 }
-
